@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>羽毛球比赛记录器</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --ok: #059669;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 10px;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea { min-height: 76px; resize: vertical; }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1fr 140px 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .player-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      background: linear-gradient(180deg, #fff, #f9fbff);
+    }
+
+    .player-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .big-score {
+      font-size: 68px;
+      line-height: 1;
+      font-weight: 800;
+      margin: 6px 0 8px;
+    }
+
+    .sets {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .center-box {
+      border: 1px dashed var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: #fbfcfe;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .point-btn {
+      min-height: 100px;
+      border: none;
+      border-radius: 18px;
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+
+    .left-btn { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+    .right-btn { background: linear-gradient(135deg, #059669, #047857); }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    button.action {
+      min-height: 52px;
+      border: none;
+      border-radius: 14px;
+      background: #111827;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary { background: #475569; }
+    button.danger { background: var(--danger); }
+    button.light {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid var(--line);
+    }
+
+    .result-types {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 12px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .pill.active {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      color: #1d4ed8;
+    }
+
+    .status {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+    }
+
+    .log-wrap {
+      max-height: 340px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .winner-banner {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 700;
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .grid-2, .grid-3, .grid-4, .toolbar, .result-types, .scoreboard {
+        grid-template-columns: 1fr;
+      }
+      .scoreboard { gap: 10px; }
+      .center-box { order: -1; }
+      .point-btn { min-height: 92px; font-size: 26px; }
+      .big-score { font-size: 58px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>羽毛球比赛记录器</h1>
+      <div class="sub">支持大按钮记分、每球过程记录、撤销、导出 CSV、本地自动保存</div>
+
+      <div class="grid grid-4">
+        <div>
+          <label>比赛名称</label>
+          <input id="matchName" placeholder="例如：班级联赛决赛" />
+        </div>
+        <div>
+          <label>日期</label>
+          <input id="matchDate" type="date" />
+        </div>
+        <div>
+          <label>左侧选手 / 组合</label>
+          <input id="playerA" placeholder="例如：张三 / 李四" />
+        </div>
+        <div>
+          <label>右侧选手 / 组合</label>
+          <input id="playerB" placeholder="例如：王五 / 赵六" />
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:10px;">
+        <div>
+          <label>赛制</label>
+          <select id="formatSelect">
+            <option value="bo3_21">3局2胜，每局21分</option>
+            <option value="single_3">1局定胜负，先到3分</option>
+            <option value="single_21">1局定胜负，先到21分</option>
+          </select>
+        </div>
+        <div>
+          <label>当前发球方</label>
+          <select id="serverSelect">
+            <option value="A">左侧</option>
+            <option value="B">右侧</option>
+          </select>
+        </div>
+        <div>
+          <label>备注</label>
+          <input id="notes" placeholder="场地、轮次等" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="scoreboard">
+        <div class="player-box">
+          <div class="player-name" id="nameAView">左侧</div>
+          <div class="big-score" id="scoreAView">0</div>
+          <div class="sets">局分：<span id="setsAView">0</span></div>
+        </div>
+
+        <div class="center-box">
+          <div class="badge" id="gameView">第 1 局</div>
+          <div class="small">发球方：<span id="serverView">左侧</span></div>
+          <div class="small" style="margin-top:8px;">赛制：<span id="formatView">3局2胜，每局21分</span></div>
+          <div class="winner-banner" id="winnerBanner"></div>
+        </div>
+
+        <div class="player-box">
+          <div class="player-name" id="nameBView">右侧</div>
+          <div class="big-score" id="scoreBView">0</div>
+          <div class="sets">局分：<span id="setsBView">0</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <div class="small" style="margin-bottom:8px;">当前这一分是如何产生的</div>
+        <div class="result-types" id="resultTypeBar"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="point-btn left-btn" id="pointA">左侧得分 +1</button>
+        <button class="point-btn right-btn" id="pointB">右侧得分 +1</button>
+      </div>
+
+      <div class="toolbar" style="margin-top:14px;">
+        <button class="action secondary" id="undoBtn">撤销上一分</button>
+        <button class="action light" id="swapServeBtn">切换发球方</button>
+        <button class="action light" id="exportBtn">导出 CSV</button>
+        <button class="action danger" id="resetBtn">重置整场比赛</button>
+      </div>
+
+      <div class="status" id="statusText">已开启本地自动保存。</div>
+    </div>
+
+    <div class="card">
+      <h2>每球记录</h2>
+      <div class="log-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:64px;">序号</th>
+              <th style="width:72px;">局</th>
+              <th style="width:110px;">得分方</th>
+              <th style="width:110px;">发球方</th>
+              <th style="width:120px;">方式</th>
+              <th>比分</th>
+              <th style="width:170px;">时间</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'badminton_recorder_v2';
+    const RESULT_TYPES = ['正常得分', '对手出界', '对手下网', '对手发球失误', '制胜分', '其他'];
+
+    const FORMAT_MAP = {
+      bo3_21: {
+        label: '3局2胜，每局21分',
+        maxGames: 3,
+        winGames: 2,
+        target: 21,
+        winByTwo: true,
+      },
+      single_3: {
+        label: '1局定胜负，先到3分',
+        maxGames: 1,
+        winGames: 1,
+        target: 3,
+        winByTwo: false,
+      },
+      single_21: {
+        label: '1局定胜负，先到21分',
+        maxGames: 1,
+        winGames: 1,
+        target: 21,
+        winByTwo: true,
+      }
+    };
+
+    const el = id => document.getElementById(id);
+
+    let state = {
+      matchName: '',
+      matchDate: '',
+      playerA: '左侧',
+      playerB: '右侧',
+      notes: '',
+      format: 'bo3_21',
+      currentServer: 'A',
+      selectedResultType: '正常得分',
+      scores: { A: 0, B: 0 },
+      sets: { A: 0, B: 0 },
+      currentGame: 1,
+      rallyLog: [],
+      history: [],
+      finished: false,
+      winner: ''
+    };
+
+    function deepCopy(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setStatus('已自动保存到本机。');
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      try {
+        const saved = JSON.parse(raw);
+        state = Object.assign(state, saved);
+      } catch (e) {
+        console.warn('读取保存失败', e);
+      }
+    }
+
+    function setStatus(text) {
+      el('statusText').textContent = text;
+    }
+
+    function buildResultButtons() {
+      const bar = el('resultTypeBar');
+      bar.innerHTML = '';
+      RESULT_TYPES.forEach(type => {
+        const btn = document.createElement('button');
+        btn.className = 'pill' + (state.selectedResultType === type ? ' active' : '');
+        btn.textContent = type;
+        btn.onclick = () => {
+          state.selectedResultType = type;
+          buildResultButtons();
+          saveState();
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function syncInputsFromState() {
+      el('matchName').value = state.matchName || '';
+      el('matchDate').value = state.matchDate || '';
+      el('playerA').value = state.playerA || '';
+      el('playerB').value = state.playerB || '';
+      el('notes').value = state.notes || '';
+      el('formatSelect').value = state.format;
+      el('serverSelect').value = state.currentServer;
+    }
+
+    function syncStateFromInputs() {
+      state.matchName = el('matchName').value.trim();
+      state.matchDate = el('matchDate').value;
+      state.playerA = el('playerA').value.trim() || '左侧';
+      state.playerB = el('playerB').value.trim() || '右侧';
+      state.notes = el('notes').value.trim();
+      state.format = el('formatSelect').value;
+      state.currentServer = el('serverSelect').value;
+    }
+
+    function isGameWon(a, b, formatKey) {
+      const cfg = FORMAT_MAP[formatKey];
+      const max = Math.max(a, b);
+      const diff = Math.abs(a - b);
+      if (cfg.winByTwo) {
+        return max >= cfg.target && diff >= 2;
+      }
+      return max >= cfg.target;
+    }
+
+    function getLeaderKey() {
+      if (state.scores.A > state.scores.B) return 'A';
+      if (state.scores.B > state.scores.A) return 'B';
+      return '';
+    }
+
+    function pointTo(side) {
+      if (state.finished) {
+        setStatus('比赛已结束，如需继续请先重置。');
+        return;
+      }
+
+      syncStateFromInputs();
+      state.history.push(deepCopy({
+        scores: state.scores,
+        sets: state.sets,
+        currentGame: state.currentGame,
+        rallyLog: state.rallyLog,
+        currentServer: state.currentServer,
+        finished: state.finished,
+        winner: state.winner,
+        format: state.format,
+        selectedResultType: state.selectedResultType,
+        matchName: state.matchName,
+        matchDate: state.matchDate,
+        playerA: state.playerA,
+        playerB: state.playerB,
+        notes: state.notes
+      }));
+
+      state.scores[side] += 1;
+      state.currentServer = side;
+
+      const logItem = {
+        no: state.rallyLog.length + 1,
+        game: state.currentGame,
+        scorer: side,
+        scorerName: side === 'A' ? state.playerA : state.playerB,
+        server: state.currentServer,
+        serverName: state.currentServer === 'A' ? state.playerA : state.playerB,
+        resultType: state.selectedResultType,
+        scoreText: `${state.scores.A} : ${state.scores.B}`,
+        timestamp: new Date().toLocaleString('zh-CN', { hour12: false })
+      };
+      state.rallyLog.push(logItem);
+
+      if (isGameWon(state.scores.A, state.scores.B, state.format)) {
+        const gameWinner = getLeaderKey();
+        if (gameWinner) {
+          state.sets[gameWinner] += 1;
+        }
+
+        const cfg = FORMAT_MAP[state.format];
+        if (state.sets.A >= cfg.winGames || state.sets.B >= cfg.winGames) {
+          state.finished = true;
+          state.winner = state.sets.A > state.sets.B ? state.playerA : state.playerB;
+          setStatus(`比赛结束，胜者：${state.winner}`);
+        } else {
+          state.currentGame += 1;
+          state.scores = { A: 0, B: 0 };
+          state.currentServer = gameWinner === 'A' ? 'B' : 'A';
+          setStatus(`第 ${state.currentGame - 1} 局结束，进入第 ${state.currentGame} 局。`);
+        }
+      } else {
+        setStatus(`已记录第 ${state.rallyLog.length} 分。`);
+      }
+
+      render();
+      saveState();
+    }
+
+    function undoLast() {
+      if (!state.history.length) {
+        setStatus('没有可撤销的内容。');
+        return;
+      }
+      const prev = state.history.pop();
+      state.scores = prev.scores;
+      state.sets = prev.sets;
+      state.currentGame = prev.currentGame;
+      state.rallyLog = prev.rallyLog;
+      state.currentServer = prev.currentServer;
+      state.finished = prev.finished;
+      state.winner = prev.winner;
+      state.format = prev.format;
+      state.selectedResultType = prev.selectedResultType;
+      state.matchName = prev.matchName;
+      state.matchDate = prev.matchDate;
+      state.playerA = prev.playerA;
+      state.playerB = prev.playerB;
+      state.notes = prev.notes;
+      render();
+      syncInputsFromState();
+      buildResultButtons();
+      saveState();
+      setStatus('已撤销上一分。');
+    }
+
+    function resetMatch() {
+      const confirmed = confirm('确定要重置整场比赛吗？本地保存的当前比赛也会被清空。');
+      if (!confirmed) return;
+
+      const today = new Date();
+      const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+      state = {
+        matchName: '',
+        matchDate: localDate,
+        playerA: '左侧',
+        playerB: '右侧',
+        notes: '',
+        format: 'bo3_21',
+        currentServer: 'A',
+        selectedResultType: '正常得分',
+        scores: { A: 0, B: 0 },
+        sets: { A: 0, B: 0 },
+        currentGame: 1,
+        rallyLog: [],
+        history: [],
+        finished: false,
+        winner: ''
+      };
+      render();
+      syncInputsFromState();
+      buildResultButtons();
+      saveState();
+      setStatus('已重置比赛。');
+    }
+
+    function exportCSV() {
+      syncStateFromInputs();
+      const rows = [];
+      rows.push(['比赛名称', state.matchName]);
+      rows.push(['日期', state.matchDate]);
+      rows.push(['左侧选手', state.playerA]);
+      rows.push(['右侧选手', state.playerB]);
+      rows.push(['赛制', FORMAT_MAP[state.format].label]);
+      rows.push(['备注', state.notes]);
+      rows.push(['最终局分', `${state.sets.A}:${state.sets.B}`]);
+      rows.push(['当前/最终比分', `${state.scores.A}:${state.scores.B}`]);
+      rows.push(['胜者', state.finished ? state.winner : '']);
+      rows.push([]);
+      rows.push(['序号', '局', '得分方', '发球方', '方式', '比分', '时间']);
+
+      state.rallyLog.forEach(item => {
+        rows.push([
+          item.no,
+          item.game,
+          item.scorerName,
+          item.serverName,
+          item.resultType,
+          item.scoreText,
+          item.timestamp
+        ]);
+      });
+
+      const csv = rows.map(row => row.map(cell => {
+        const text = cell == null ? '' : String(cell);
+        return '"' + text.replace(/"/g, '""') + '"';
+      }).join(',')).join('\n');
+
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = state.matchDate || new Date().toISOString().slice(0, 10);
+      const safeName = (state.matchName || '羽毛球比赛记录').replace(/[\\/:*?"<>|]/g, '_');
+      a.href = url;
+      a.download = `${safeName}_${date}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus('CSV 已导出。');
+    }
+
+    function renderLog() {
+      const body = el('logBody');
+      body.innerHTML = '';
+      if (!state.rallyLog.length) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="7" class="muted">还没有记录，点击上面的“大按钮”开始。</td>';
+        body.appendChild(tr);
+        return;
+      }
+
+      state.rallyLog.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.no}</td>
+          <td>第${item.game}局</td>
+          <td>${item.scorerName}</td>
+          <td>${item.serverName}</td>
+          <td>${item.resultType}</td>
+          <td>${item.scoreText}</td>
+          <td>${item.timestamp}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function render() {
+      syncStateFromInputs();
+      el('nameAView').textContent = state.playerA || '左侧';
+      el('nameBView').textContent = state.playerB || '右侧';
+      el('scoreAView').textContent = state.scores.A;
+      el('scoreBView').textContent = state.scores.B;
+      el('setsAView').textContent = state.sets.A;
+      el('setsBView').textContent = state.sets.B;
+      el('gameView').textContent = `第 ${state.currentGame} 局`;
+      el('serverView').textContent = state.currentServer === 'A' ? (state.playerA || '左侧') : (state.playerB || '右侧');
+      el('formatView').textContent = FORMAT_MAP[state.format].label;
+      el('serverSelect').value = state.currentServer;
+      el('formatSelect').value = state.format;
+
+      const banner = el('winnerBanner');
+      if (state.finished) {
+        banner.style.display = 'block';
+        banner.textContent = `比赛结束：${state.winner} 获胜`;
+      } else {
+        banner.style.display = 'none';
+        banner.textContent = '';
+      }
+
+      renderLog();
+      buildResultButtons();
+    }
+
+    function bindInputs() {
+      ['matchName', 'matchDate', 'playerA', 'playerB', 'notes'].forEach(id => {
+        el(id).addEventListener('input', () => {
+          syncStateFromInputs();
+          render();
+          saveState();
+        });
+      });
+
+      el('formatSelect').addEventListener('change', () => {
+        syncStateFromInputs();
+        render();
+        saveState();
+        setStatus('赛制已更新。若已开始比赛，后续判定将按新赛制执行。');
+      });
+
+      el('serverSelect').addEventListener('change', () => {
+        syncStateFromInputs();
+        render();
+        saveState();
+        setStatus('发球方已更新。');
+      });
+
+      el('pointA').onclick = () => pointTo('A');
+      el('pointB').onclick = () => pointTo('B');
+      el('undoBtn').onclick = undoLast;
+      el('swapServeBtn').onclick = () => {
+        state.currentServer = state.currentServer === 'A' ? 'B' : 'A';
+        render();
+        saveState();
+        setStatus('已切换发球方。');
+      };
+      el('resetBtn').onclick = resetMatch;
+      el('exportBtn').onclick = exportCSV;
+    }
+
+    function init() {
+      const today = new Date();
+      const localDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+      state.matchDate = localStorage.getItem(STORAGE_KEY) ? state.matchDate : localDate;
+      loadState();
+      if (!state.matchDate) state.matchDate = localDate;
+      syncInputsFromState();
+      bindInputs();
+      render();
+      setStatus('应用已就绪，正在使用本地自动保存。');
+    }
+
+    init();
+  </script>
+</body>
+</html>
